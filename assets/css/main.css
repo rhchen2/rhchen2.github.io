@@ -2818,11 +2818,11 @@ input, select, textarea {
 		border-top: 0;
 		color: #c0c0c0;
 		overflow: hidden;
-		padding: 4em 0 2em 0;
+		padding: 2em 0 1em 0;
 	}
 
 		#footer .copyright {
-			line-height: 1em;
+			line-height: 0.5em;
 			list-style: none;
 			padding: 0;
 		}
@@ -2830,7 +2830,7 @@ input, select, textarea {
 			#footer .copyright li {
 				border-left: solid 1px #d4d4d4;
 				display: inline-block;
-				font-size: 0.8em;
+				font-size: 0.5em;
 				margin-left: 1em;
 				padding-left: 1em;
 			}
