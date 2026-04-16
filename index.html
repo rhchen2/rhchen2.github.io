@@ -1,237 +1,515 @@
-<!DOCTYPE HTML>
-<!--
-	Read Only by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Ryan Chen</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-    <link rel="stylesheet" href="assets/css/main.css" />
-<!--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">-->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OPTCG Chase Tracker - DoggotTCG</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242836;
+    --border: #2e3347;
+    --text: #e4e6f0;
+    --text-dim: #8b8fa3;
+    --accent: #6c5ce7;
+    --accent2: #a29bfe;
+    --green: #00b894;
+    --red: #e74c3c;
+    --gold: #f1c40f;
+    --card-radius: 8px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  /* Header */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .header h1 span { color: var(--accent2); }
+  .header .subtitle { color: var(--text-dim); font-size: 0.85rem; }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 24px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+  }
+  .stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .stat-label { font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-value.green { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.accent { color: var(--accent2); }
+
+  .progress-bar-wrap {
+    flex: 1;
+    min-width: 200px;
+    max-width: 400px;
+  }
+  .progress-bar {
+    height: 10px;
+    background: var(--surface2);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--green));
+    border-radius: 5px;
+    transition: width 0.5s ease;
+  }
+  .progress-label { font-size: 0.75rem; color: var(--text-dim); text-align: right; }
+
+  /* Filters */
+  .filters {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-group { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .filter-group label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; margin-right: 4px; }
+  .filter-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 5px 12px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+  .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .filter-separator { width: 1px; height: 24px; background: var(--border); margin: 0 6px; }
+  .search-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 5px 14px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    outline: none;
+    width: 200px;
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--text-dim); }
+
+  /* Main content */
+  .main { max-width: 1400px; margin: 0 auto; padding: 0 24px 60px; }
+
+  /* Set section */
+  .set-section { margin-top: 32px; }
+  .set-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .set-header h2 {
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+  .set-header .set-code {
+    color: var(--accent2);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .set-header .set-count {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    margin-left: auto;
+  }
+  .set-header .toggle-arrow {
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    transition: transform 0.2s;
+  }
+  .set-header .toggle-arrow.collapsed { transform: rotate(-90deg); }
+
+  /* Card grid */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+  }
+  .card-grid.hidden { display: none; }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .card.owned { opacity: 0.45; }
+  .card.owned:hover { opacity: 0.8; }
+  .card-img-wrap {
+    aspect-ratio: 5/7;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .card-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .card-img-wrap .no-img {
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    text-align: center;
+    padding: 12px;
+  }
+  .card-info {
+    padding: 8px 10px;
+  }
+  .card-info .card-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-info .card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 3px;
+  }
+  .card-info .card-number {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+  }
+  .variant-badge {
+    font-size: 0.65rem;
+    padding: 1px 7px;
+    border-radius: 8px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .variant-badge.aal { background: #6c5ce733; color: #a29bfe; }
+  .variant-badge.alt-art { background: #0984e333; color: #74b9ff; }
+  .variant-badge.box-topper { background: #fdcb6e33; color: #fdcb6e; }
+  .variant-badge.sec { background: #e74c3c33; color: #ff7675; }
+  .variant-badge.tr { background: #f1c40f33; color: #f1c40f; }
+  .variant-badge.sp { background: #00b89433; color: #55efc4; }
+  .variant-badge.manga { background: #e8439333; color: #fd79a8; }
+  .variant-badge.don { background: #e1720033; color: #e17000; }
+  .variant-badge.other { background: #636e7233; color: #b2bec3; }
+
+  .owned-check {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--green);
+    color: #fff;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  /* Loading */
+  .loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 0;
+    color: var(--text-dim);
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .card-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+    .stats-bar { gap: 14px; }
+    .stat-value { font-size: 1.2rem; }
+    .filters { padding: 12px 16px; }
+    .header-inner, .main { padding-left: 16px; padding-right: 16px; }
+  }
+</style>
 </head>
+<body>
 
-<body class="is-preload">
-
-    <!-- Header -->
-    <section id="header">
-        <header>
-            <span class="image avatar"><img src="images/Ryan_headshot.jpg" alt="" /></span>
-            <h1 id="logo"><a href="#">Ryan Chen</a></h1>
-            <p>Software Engineer • Chef</p>
-            <a href="mailto:ryanchen1996@yahoo.com">Email</a>
-            <br>
-            <a href="assets/Resume.pdf">Resume</a>
-        </header>
-        <nav id="nav">
-            <ul>
-                <li><a href="#about" class="active">About Me</a></li>
-                <li>
-                    <a href="#experience">Past Experience</a>
-                </li>
-                <li><a href="#class">Classes</a></li>
-                <li><a href="#founders">Founders-Illinois Entrepreneurs</a></li>
-                <li><a href="#skills">Skills</a></li>
-            </ul>
-        </nav>
-    </section>
-
-    <!-- Wrapper -->
-    <div id="wrapper">
-
-        <!-- Main -->
-        <div id="main">
-
-            <!-- One -->
-            <section id="about">
-                <div class="image main" data-position="center">
-                    <img src="images/Quad.jpeg" alt="" />
-                </div>
-                <div class="container">
-                    <header class="major">
-                        <h3>About Me</h3>
-                    </header>
-                    <p>
-                        I'm a software engineer. Outside of coding, I enjoy optimizaing rewards with credit cards and  experimenting with different cooking. Outside of school, as the retired VP of <a href="https://www.founders.illinois.edu">Founders</a>, I enjoy working with students startups and helping them gain traction and promote entrepreneurship around campus.
-                    </p>
-
-<!--
-                    <p>
-                        A life goal of mine is to own my own <a href="https://en.wikipedia.org/wiki/Bubble_tea">boba</a> shop, which stems from my Taiwanese heritage and my love for the drink.
-                        <br>
-                        <img id="boba" src="images/ryansboba.png" height="100" width="100">
-                    </p>
--->
-                </div>
-            </section>
-
-            <!-- Two -->
-            <section id="experience">
-                <div class="container">
-                    <h3>Past Experiences</h3>
-                    <div class="features">
-                        <article>
-                            <a href="https://www.amobee.com/" class="image"><img src="images/AmobeeLogo1.png" alt="" /></a>
-                            <div class="inner">
-                                <h4>Software Intern - Amobee <br>(Fall '18 - Spring '19)</h4>
-                                <p>
-                                    Working on a quality compliance monitoring system to ensure the input and output of all API's adhere to compliance regulations. Using Java and languages such as <a href="https://kafka.apache.org/"><b>Kafka</b></a>, <a href="https://aws.amazon.com/" ><b>AWS</b></a> , <a href="https://aws.amazon.com/"><b>Docker</b></a>, <a href="https://grafana.com/"><b>Graphana</b></a> and <a href="https://www.elastic.co/"><b>ElasticSearch</b></a> 
-                                </p>
-                            </div>
-                        </article>
-                        <article>
-                            <a href="https://www.capitalone.com/" class="image"><img src="images/2000px-Capital_One_logo.svg.png" alt="" /></a>
-                            <div class="inner">
-                                <h4>Software Intern - Capital One <br>(Summer '18)</h4>
-                                <p>
-                                    Building an internal facing UI and APIs to convert a set of rules to a yaml file to pass it into a financial database using <a href="https://angular.io/"><b>Angular 6</b></a> and <a href="https://golang.org/"><b>Go</b></a> and deploying using <a href="https://aws.amazon.com/"><b>Docker</b></a>
-                                </p>
-                            </div>
-                        </article>
-                        <article>
-                            <a href="https://www.capitalone.com/" class="image"><img src="images/2000px-Capital_One_logo.svg.png" alt="" /></a>
-                            <div class="inner">
-                                <h4>
-                                    Software Intern - Capital One
-                                    <br>
-                                    (Fall '16 - Spring '17)
-                                </h4>
-                                <p>Designed and Built Web APIs using <a href = 'https://reactjs.org/'><b>ReactJs</b></a>. Analyzed RPA apps to increase the efficiency of operations.</p>
-                            </div>
-                        </article>
-                        <article>
-                            <a href="https://illinois.edu/" class="image"><img src="images/UIUC_Logo_University_of_Illinois_at_Urbana-Champaign.png" alt="" /></a>
-                            <div class="inner">
-                                <h4>
-                                    Teaching Assistant - Discrete Structures
-                                    <br>
-                                    (Spring '16 - Fall '18)
-                                </h4>
-                                <p>Help to teach and guide students in discrete structures course. Hold weekly office hours to aid students and proctor exams.</p>
-                            </div>
-                        </article>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Three -->
-            <section id="class">
-                <div class="container">
-                    <h3>Classes Taken</h3>
-                    <ul class="feature-icons">
-                        <li class="fa-code"><a href="https://courses.illinois.edu/schedule/2018/fall/CS/374">Algorithms</a></li>
-                        <li class="fa-code"><a href="https://courses.illinois.edu/schedule/2018/fall/CS/241">Systems Programming</a></li>
-                        <li class="fa-code"><a href="https://courses.illinois.edu/schedule/2018/fall/CS/225">Data Structures</a></li>
-                        <li class="fa-code"><a href="https://courses.illinois.edu/schedule/2018/fall/CS/233">Computer Architecture</a></li>
-                        <li class="fa-code"><a href="https://courses.illinois.edu/schedule/2018/fall/CS/242">Programming Studio</a></li>
-                        <li class="fa-flask"><a href="https://courses.illinois.edu/schedule/2018/fall/CHEM/332">Organic Chemistry 2</a></li>
-                        <li class="fa-flask"><a href="https://courses.illinois.edu/schedule/2018/fall/CHEM/236">Organic Chemistry</a></li>
-                        <li class="fa-flask"><a href="https://courses.illinois.edu/schedule/2018/fall/CHEM/440">Physical Chemistry</a></li>
-                        <li class="fa-flask"><a href="https://courses.illinois.edu/schedule/2018/fall/CHEM/312">Inorganic Chemistry</a></li>
-                    </ul>
-                </div>
-            </section>
-            <section id="founders">
-                <div class="container">
-                    <h3>Founders</h3>
-
-                    <div class="features">
-
-                        <article>
-                            <a href="http://founders.illinois.edu/" class="image"><img src="images/founderslogo.png" alt="" /></a>
-                            <div class="inner">
-                                <h4>
-                                    Vice President
-                                    <br>
-                                    (Fall '16 - Fall'17)
-                                </h4>
-                                <p>Direct the planning and execution of corporate events and internal affairs(meetings, events) for Founders. Select and serve as primary point of contact for all corporate partners. Maintain strong relationships with numerous corporate partners. Manage budgets of up to $20000 for over 200 members. Overhaul the infrastructure for the club making operations more efficient.</p>
-                            </div>
-                        </article>
-                        <article>
-                            <a href="https://54.io" class="image"><img src="images/54.png" /></a>
-                            <div class="inner">
-                                <h4>54 Team Lead <br>(Fall '16)</h4>
-                                <p>
-                                    Lead a team to organize a 3-day start up weekend. Managed budgets of up to $3000 for 150 attendees. Was the main point of contact for mentors and corporate partners
-                                </p>
-                            </div>
-                        </article>
-                        <article>
-                            <a href="https://founders.illinois.edu/startupcareerfair" class="image"><img src="images/scf_logo.png" alt="" /></a>
-                            <div class="inner">
-                                <h4>
-                                    Startup Career Fair Team Lead
-                                    <br>
-                                    (Spring '16 and '17)
-                                </h4>
-                                <p>Organized three career fairs for 400 students and 30 companies including, but not limited to, Qualtrics, Avant, Wish and local student startups. Oversaw a team of 10 to seamlessly plan and execute the event. Coordinated registration and was the main point of contact for corporate participants.</p>
-                            </div>
-                        </article>
-
-                        <article>
-                            <a href="http://founders.illinois.edu/" class="image"><img src="images/founderslogo.png" alt="" /></a>
-                            <div class="inner">
-                                <h4>
-                                    Events Team Lead
-                                    <br>
-                                    (Fall '18)
-                                </h4>
-                                <p>Organizing fun events for the club. Managing a budget of $1500 for 40 people. Coordinating with other clubs and local companies to network with Founders.</p>
-                            </div>
-                        </article>
-
-                    </div>
-                </div>
-            </section>
-
-            <section id="skills">
-                <div class="container">
-                    <h3>Skills</h3>
-                    <ul class="feature-icons">
-                        <li class="fa-code">C/C++</li>
-                        <li class="fa-code">Java</li>
-                        <li class="fa-code">Python</li>
-                        <li class="fa-code">Html5/CSS</li>
-                        <li class="fa-code">Angular</li>
-                        <li class="fa-code">React</li>
-                        <li class="fa-code">Docker</li>
-                        <li class="fa-code">Latex</li>
-                        <li class="fa-code">Github</li>
-                        <li class="fa-users">Public Speaking</li>
-                        <li class="fa-users">Leadership</li>
-                        <li class="fa-users">Project Management</li>
-                        
-                    </ul>
-                </div>
-            </section>
-        </div>
-
-        <!-- Footer -->
-        <section id="footer">
-            <div class="container">
-                <ul class="copyright">
-                    <li>&copy; Untitled. All rights reserved.</li>
-                    <li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
-                </ul>
-            </div>
-        </section>
-
+<div class="header">
+  <div class="header-inner">
+    <h1>OPTCG <span>Chase Tracker</span></h1>
+    <div class="subtitle">DoggotTCG - Missing Chase Cards</div>
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-value accent" id="stat-total">--</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value green" id="stat-owned">--</div>
+        <div class="stat-label">Owned</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value red" id="stat-needed">--</div>
+        <div class="stat-label">Needed</div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0"></div></div>
+        <div class="progress-label" id="progress-label">0%</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label" id="stat-generated" style="font-size:0.7rem">--</div>
+      </div>
     </div>
+  </div>
+</div>
 
-    <!-- Scripts -->
-    <script src="assets/js/jquery.min.js"></script>
-    <script src="assets/js/jquery.scrollex.min.js"></script>
-    <script src="assets/js/jquery.scrolly.min.js"></script>
-    <script src="assets/js/browser.min.js"></script>
-    <script src="assets/js/breakpoints.min.js"></script>
-    <script src="assets/js/util.js"></script>
-    <script src="assets/js/main.js"></script>
+<div class="filters">
+  <div class="filter-group">
+    <label>Show:</label>
+    <button class="filter-btn active" data-filter="show" data-value="needed">Needed</button>
+    <button class="filter-btn" data-filter="show" data-value="all">All Cards</button>
+    <button class="filter-btn" data-filter="show" data-value="owned">Owned</button>
+  </div>
+  <div class="filter-separator"></div>
+  <div class="filter-group">
+    <label>Type:</label>
+    <button class="filter-btn active" data-filter="variant" data-value="all">All</button>
+    <button class="filter-btn" data-filter="variant" data-value="Alt Art Leader">AAL</button>
+    <button class="filter-btn" data-filter="variant" data-value="Alt Art">Alt Art</button>
+    <button class="filter-btn" data-filter="variant" data-value="Box Topper">Box Topper</button>
+    <button class="filter-btn" data-filter="variant" data-value="SEC">SEC</button>
+    <button class="filter-btn" data-filter="variant" data-value="TR">TR</button>
+    <button class="filter-btn" data-filter="variant" data-value="SP">SP</button>
+    <button class="filter-btn" data-filter="variant" data-value="Manga">Manga</button>
+    <button class="filter-btn" data-filter="variant" data-value="DON">DON</button>
+  </div>
+  <div class="filter-separator"></div>
+  <input type="text" class="search-input" id="search" placeholder="Search card name...">
+</div>
 
+<div class="main" id="main">
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div>Loading card data...</div>
+  </div>
+</div>
+
+<script>
+let DATA = null;
+let filters = { show: 'needed', variant: 'all', search: '' };
+
+function variantClass(v) {
+  if (v === 'Alt Art Leader') return 'aal';
+  if (v === 'Alt Art') return 'alt-art';
+  if (v === 'Box Topper') return 'box-topper';
+  if (v === 'SEC') return 'sec';
+  if (v === 'TR') return 'tr';
+  if (v === 'SP') return 'sp';
+  if (v.includes('Manga') || v.includes('P2') || v.includes('P3')) return 'manga';
+  if (v.startsWith('DON')) return 'don';
+  return 'other';
+}
+
+function variantShort(v) {
+  if (v === 'Manga Rare / P2') return 'Manga';
+  return v;
+}
+
+function matchesVariantFilter(variant, filter) {
+  if (filter === 'all') return true;
+  if (filter === 'Manga') return variant.includes('Manga') || variant.includes('P2') || variant.includes('P3');
+  if (filter === 'DON') return variant.startsWith('DON');
+  return variant === filter;
+}
+
+function matchesShowFilter(owned) {
+  if (filters.show === 'needed') return !owned;
+  if (filters.show === 'owned') return owned;
+  return true;
+}
+
+function cardHTML(card) {
+  const vc = variantClass(card.variant);
+  const ownedClass = card.owned ? ' owned' : '';
+  const check = card.owned ? '<div class="owned-check">&#10003;</div>' : '';
+  const imgContent = card.image
+    ? `<img src="${card.image}" alt="${card.name}" loading="lazy">`
+    : `<div class="no-img">${card.name}<br>${card.number}</div>`;
+  const linkOpen = card.link ? `<a href="${card.link}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">` : '';
+  const linkClose = card.link ? '</a>' : '';
+
+  return `<div class="card${ownedClass}">
+    ${check}
+    ${linkOpen}
+    <div class="card-img-wrap">${imgContent}</div>
+    <div class="card-info">
+      <div class="card-name" title="${card.name}">${card.name}</div>
+      <div class="card-meta">
+        <span class="card-number">${card.number}</span>
+        <span class="variant-badge ${vc}">${variantShort(card.variant)}</span>
+      </div>
+    </div>
+    ${linkClose}
+  </div>`;
+}
+
+// Track collapsed state per set
+const collapsed = {};
+
+function render() {
+  const main = document.getElementById('main');
+  if (!DATA) return;
+
+  const sets = DATA.sets;
+  const order = Object.keys(sets);
+  let html = '';
+  let filteredTotal = 0, filteredOwned = 0, filteredNeeded = 0;
+
+  for (const setCode of order) {
+    const set = sets[setCode];
+    const visibleCards = set.cards.filter(c => {
+      if (!matchesShowFilter(c.owned)) return false;
+      if (!matchesVariantFilter(c.variant, filters.variant)) return false;
+      if (filters.search && !c.name.toLowerCase().includes(filters.search.toLowerCase())) return false;
+      return true;
+    });
+
+    if (visibleCards.length === 0) continue;
+
+    const setOwned = visibleCards.filter(c => c.owned).length;
+    const setNeeded = visibleCards.length - setOwned;
+    filteredTotal += visibleCards.length;
+    filteredOwned += setOwned;
+    filteredNeeded += setNeeded;
+
+    const isCollapsed = collapsed[setCode] || false;
+    const arrowClass = isCollapsed ? ' collapsed' : '';
+    const gridClass = isCollapsed ? ' hidden' : '';
+
+    html += `<div class="set-section">
+      <div class="set-header" onclick="toggleSet('${setCode}')">
+        <span class="toggle-arrow${arrowClass}" id="arrow-${setCode}">&#9660;</span>
+        <span class="set-code">${setCode}</span>
+        <h2>${set.name}</h2>
+        <span class="set-count">${visibleCards.length} cards (${setOwned} owned, ${setNeeded} needed)</span>
+      </div>
+      <div class="card-grid${gridClass}" id="grid-${setCode}">
+        ${visibleCards.map(cardHTML).join('')}
+      </div>
+    </div>`;
+  }
+
+  if (!html) {
+    html = '<div class="loading" style="animation:none"><div style="font-size:1.1rem;margin-bottom:8px">No cards match your filters</div><div style="color:var(--text-dim);font-size:0.85rem">Try adjusting the filter or search</div></div>';
+  }
+
+  main.innerHTML = html;
+
+  // Update stats for filtered view
+  document.getElementById('stat-total').textContent = filteredTotal;
+  document.getElementById('stat-owned').textContent = filteredOwned;
+  document.getElementById('stat-needed').textContent = filteredNeeded;
+  const pct = filteredTotal > 0 ? Math.round(filteredOwned / filteredTotal * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = pct + '% complete';
+}
+
+function toggleSet(setCode) {
+  collapsed[setCode] = !collapsed[setCode];
+  const grid = document.getElementById('grid-' + setCode);
+  const arrow = document.getElementById('arrow-' + setCode);
+  if (grid) grid.classList.toggle('hidden');
+  if (arrow) arrow.classList.toggle('collapsed');
+}
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const filterType = btn.dataset.filter;
+    const value = btn.dataset.value;
+    filters[filterType] = value;
+    // Update active state in the same group
+    document.querySelectorAll(`.filter-btn[data-filter="${filterType}"]`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  });
+});
+
+// Search
+document.getElementById('search').addEventListener('input', e => {
+  filters.search = e.target.value;
+  render();
+});
+
+// Load data
+fetch('chase_data.json')
+  .then(r => r.json())
+  .then(data => {
+    DATA = data;
+    document.getElementById('stat-generated').textContent = 'Updated: ' + data.generated;
+    render();
+  })
+  .catch(err => {
+    document.getElementById('loading').innerHTML = '<div style="color:var(--red)">Failed to load card data</div><div style="color:var(--text-dim);font-size:0.85rem;margin-top:8px">Make sure chase_data.json is in the same directory</div>';
+  });
+</script>
 </body>
-
 </html>
