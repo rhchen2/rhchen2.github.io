@@ -547,11 +547,18 @@ function render() {
 
   main.innerHTML = html;
 
-  // Update stats for filtered view
-  document.getElementById('stat-total').textContent = filteredTotal;
-  document.getElementById('stat-owned').textContent = filteredOwned;
-  document.getElementById('stat-needed').textContent = filteredNeeded;
-  const pct = filteredTotal > 0 ? Math.round(filteredOwned / filteredTotal * 100) : 0;
+  // Update stats — always show global totals regardless of filters
+  let globalTotal = 0, globalOwned = 0;
+  for (const sc of Object.keys(DATA.sets)) {
+    for (const c of DATA.sets[sc].cards) {
+      globalTotal++;
+      if (isOwned(sc, c)) globalOwned++;
+    }
+  }
+  document.getElementById('stat-total').textContent = globalTotal;
+  document.getElementById('stat-owned').textContent = globalOwned;
+  document.getElementById('stat-needed').textContent = globalTotal - globalOwned;
+  const pct = globalTotal > 0 ? Math.round(globalOwned / globalTotal * 100) : 0;
   document.getElementById('progress-fill').style.width = pct + '%';
   document.getElementById('progress-label').textContent = pct + '% complete';
 
