@@ -93,6 +93,31 @@
   }
   .progress-label { font-size: 0.75rem; color: var(--text-dim); text-align: right; }
 
+  /* Set tracker row */
+  .set-tracker {
+    display: flex;
+    gap: 6px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .set-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    min-width: 52px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .set-chip:hover { border-color: var(--accent); }
+  .set-chip.complete { border-color: var(--green); background: rgba(0,184,148,0.08); }
+  .set-chip .chip-code { font-size: 0.65rem; font-weight: 600; color: var(--accent2); }
+  .set-chip .chip-count { font-size: 0.7rem; color: var(--text-dim); }
+  .set-chip.complete .chip-count { color: var(--green); }
+
   /* Filters */
   .filters {
     max-width: 1400px;
@@ -338,6 +363,7 @@
         <div class="stat-label" id="stat-generated" style="font-size:0.7rem">--</div>
       </div>
     </div>
+    <div class="set-tracker" id="set-tracker"></div>
   </div>
 </div>
 
@@ -528,6 +554,37 @@ function render() {
   const pct = filteredTotal > 0 ? Math.round(filteredOwned / filteredTotal * 100) : 0;
   document.getElementById('progress-fill').style.width = pct + '%';
   document.getElementById('progress-label').textContent = pct + '% complete';
+
+  // Update set tracker chips
+  const tracker = document.getElementById('set-tracker');
+  let chipHtml = '';
+  for (const setCode of Object.keys(DATA.sets)) {
+    const set = DATA.sets[setCode];
+    let setOwned = 0;
+    for (const c of set.cards) {
+      if (isOwned(setCode, c)) setOwned++;
+    }
+    const total = set.cards.length;
+    const complete = setOwned === total ? ' complete' : '';
+    chipHtml += `<div class="set-chip${complete}" onclick="scrollToSet('${setCode}')">
+      <span class="chip-code">${setCode}</span>
+      <span class="chip-count">${setOwned}/${total}</span>
+    </div>`;
+  }
+  tracker.innerHTML = chipHtml;
+}
+
+function scrollToSet(setCode) {
+  const el = document.getElementById('grid-' + setCode);
+  if (!el) return;
+  // Expand if collapsed
+  if (collapsed[setCode]) {
+    collapsed[setCode] = false;
+    el.classList.remove('hidden');
+    const arrow = document.getElementById('arrow-' + setCode);
+    if (arrow) arrow.classList.remove('collapsed');
+  }
+  el.parentElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function toggleSet(setCode) {
