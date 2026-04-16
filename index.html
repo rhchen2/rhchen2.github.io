@@ -184,10 +184,30 @@
     transition: transform 0.15s, box-shadow 0.15s;
     position: relative;
   }
+  .card { cursor: pointer; }
   .card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.4);
   }
+  .card-link {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--surface);
+    color: var(--accent2);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    text-decoration: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 2;
+  }
+  .card:hover .card-link { opacity: 1; }
   .card.owned { opacity: 0.45; }
   .card.owned:hover { opacity: 0.8; }
   .card-img-wrap {
@@ -356,6 +376,39 @@
 let DATA = null;
 let filters = { show: 'needed', variant: 'all', search: '' };
 
+// Ownership overrides stored in localStorage
+function loadOverrides() {
+  try { return JSON.parse(localStorage.getItem('optcg_overrides') || '{}'); } catch { return {}; }
+}
+function saveOverrides(o) {
+  localStorage.setItem('optcg_overrides', JSON.stringify(o));
+}
+let overrides = loadOverrides();
+
+function cardKey(setCode, card) {
+  return setCode + ':' + card.number + ':' + card.variant + ':' + card.parallel;
+}
+
+function isOwned(setCode, card) {
+  const key = cardKey(setCode, card);
+  if (key in overrides) return overrides[key];
+  return card.owned;
+}
+
+function toggleOwned(setCode, card) {
+  const key = cardKey(setCode, card);
+  const current = isOwned(setCode, card);
+  if (current === card.owned) {
+    // Override to opposite
+    overrides[key] = !card.owned;
+  } else {
+    // Remove override (back to original)
+    delete overrides[key];
+  }
+  saveOverrides(overrides);
+  render();
+}
+
 function variantClass(v) {
   if (v === 'Alt Art Leader') return 'aal';
   if (v === 'Alt Art') return 'alt-art';
@@ -386,19 +439,21 @@ function matchesShowFilter(owned) {
   return true;
 }
 
-function cardHTML(card) {
+function cardHTML(setCode, card, idx) {
   const vc = variantClass(card.variant);
-  const ownedClass = card.owned ? ' owned' : '';
-  const check = card.owned ? '<div class="owned-check">&#10003;</div>' : '';
+  const owned = isOwned(setCode, card);
+  const ownedClass = owned ? ' owned' : '';
+  const check = owned ? '<div class="owned-check">&#10003;</div>' : '';
   const imgContent = card.image
     ? `<img src="${card.image}" alt="${card.name}" loading="lazy">`
     : `<div class="no-img">${card.name}<br>${card.number}</div>`;
-  const linkOpen = card.link ? `<a href="${card.link}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">` : '';
-  const linkClose = card.link ? '</a>' : '';
+  const linkBtn = card.link
+    ? `<a href="${card.link}" target="_blank" rel="noopener" class="card-link" onclick="event.stopPropagation()" title="View on Limitless">&#8599;</a>`
+    : '';
 
-  return `<div class="card${ownedClass}">
+  return `<div class="card${ownedClass}" onclick="toggleOwned('${setCode}', DATA.sets['${setCode}'].cards[${idx}])">
     ${check}
-    ${linkOpen}
+    ${linkBtn}
     <div class="card-img-wrap">${imgContent}</div>
     <div class="card-info">
       <div class="card-name" title="${card.name}">${card.name}</div>
@@ -407,7 +462,6 @@ function cardHTML(card) {
         <span class="variant-badge ${vc}">${variantShort(card.variant)}</span>
       </div>
     </div>
-    ${linkClose}
   </div>`;
 }
 
@@ -425,16 +479,20 @@ function render() {
 
   for (const setCode of order) {
     const set = sets[setCode];
-    const visibleCards = set.cards.filter(c => {
-      if (!matchesShowFilter(c.owned)) return false;
-      if (!matchesVariantFilter(c.variant, filters.variant)) return false;
-      if (filters.search && !c.name.toLowerCase().includes(filters.search.toLowerCase())) return false;
-      return true;
-    });
+    // Build visible cards with original index for onclick reference
+    const visibleCards = [];
+    for (let i = 0; i < set.cards.length; i++) {
+      const c = set.cards[i];
+      const owned = isOwned(setCode, c);
+      if (!matchesShowFilter(owned)) continue;
+      if (!matchesVariantFilter(c.variant, filters.variant)) continue;
+      if (filters.search && !c.name.toLowerCase().includes(filters.search.toLowerCase())) continue;
+      visibleCards.push({ card: c, idx: i, owned });
+    }
 
     if (visibleCards.length === 0) continue;
 
-    const setOwned = visibleCards.filter(c => c.owned).length;
+    const setOwned = visibleCards.filter(v => v.owned).length;
     const setNeeded = visibleCards.length - setOwned;
     filteredTotal += visibleCards.length;
     filteredOwned += setOwned;
@@ -452,7 +510,7 @@ function render() {
         <span class="set-count">${visibleCards.length} cards (${setOwned} owned, ${setNeeded} needed)</span>
       </div>
       <div class="card-grid${gridClass}" id="grid-${setCode}">
-        ${visibleCards.map(cardHTML).join('')}
+        ${visibleCards.map(v => cardHTML(setCode, v.card, v.idx)).join('')}
       </div>
     </div>`;
   }
@@ -486,7 +544,6 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
     const filterType = btn.dataset.filter;
     const value = btn.dataset.value;
     filters[filterType] = value;
-    // Update active state in the same group
     document.querySelectorAll(`.filter-btn[data-filter="${filterType}"]`).forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     render();
